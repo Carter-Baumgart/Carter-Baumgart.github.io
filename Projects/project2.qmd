@@ -1,7 +1,9 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Client Report - Late flights and missing data (JSON files)"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Carter Baumgart"
+execute:
+    warning: false
 format:
   html:
     self-contained: true
@@ -20,9 +22,150 @@ format:
         source: false
         toggle: true
         caption: See code
-execute: 
-  warning: false
     
 ---
 
-### Paste in a template
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import plotly_express as px
+import numpy as np
+import json
+```
+
+
+## Elevator pitch
+
+_It would appear that there are some airports that have more issues with delays than others. A key finding is that while some airports have fewer delays, their delays are actually far longer making it a game that you must play as to whether or not you can afford a delay and if so, how long are you okay with. There are also certain airports with more weather related issues than others. Lastly, certain months of the year make for better traveling conditions, September being the best and August being the worst - at least according to the data that could be analyzed._
+
+```{python}
+
+df = pd.read_json("https://raw.githubusercontent.com/byuidatascience/data4missing/master/data-raw/flights_missing/flights_missing.json")
+
+df.fillna(np.nan, inplace=True)
+
+count = (df['month'] == 'n/a').sum()
+
+print("Count of missing values in the 'month' column:", count)
+
+```
+
+__Which airport has the worst delays?__
+
+_ The airport with the worst delays would have to be ORD. This being because although SFO has a higher proportion of delayed flights - its delays are shorter than ORD's by about double! a delay at ORD has the potential to be much risker than SFO. Basically if I had to be delayed, I would rather it be an hour rather than 2 hours. This is where ORD would be the worst._
+
+```{python}
+
+total_flights = df.groupby('airport_code')['num_of_flights_total'].sum()
+
+total_delayed_flights = df.groupby('airport_code')['num_of_delays_total'].sum()
+
+proportion_delayed_flights = total_delayed_flights / total_flights
+
+df['average_delay_time_hours'] = df['minutes_delayed_total'] / 60
+average_delay_time = df.groupby('airport_code')['average_delay_time_hours'].mean()
+
+sum_table = pd.DataFrame({
+    'Total Flights': total_flights,
+    'Total Delayed Flights': total_delayed_flights,
+    'Proportion of Delayed Flights': proportion_delayed_flights,
+    'Average Delay Time (hours)': average_delay_time
+})
+
+worst_airport = sum_table.sort_values(by='Average Delay Time (hours)', ascending=False).head(7)
+
+print (worst_airport)
+
+```
+
+_This table summary shows the total flights, total delayed flights, proportion of delayed flights, and average delay time for the 7 airports in the dataframe in ascending order - indicating that SFO has the highest proportion of Delayed flights but not the highest delay time. This instead going to ORD._
+
+__What is the best month to fly if you want to avoid delays of any length?__
+
+_It would appear that the best month to fly is September. Although there is not much in the way of significant variations it still has the highest proportion of On-Time Flights - especially when compared to December._
+
+```{python}
+
+df['month'] = df['month'].replace('n/a', pd.NA)
+df = df.dropna(subset=['month'])
+
+total_flights_monthly = df.groupby('month')['num_of_flights_total'].sum()
+total_delayed_flights_monthly = df.groupby('month')['num_of_delays_total'].sum()
+total_on_time_flights = total_flights_monthly - total_delayed_flights_monthly
+
+proportion_on_time_flights = total_on_time_flights / total_flights_monthly
+best_month = proportion_on_time_flights.idxmax()
+
+fig = px.bar(x=proportion_on_time_flights.index, y=proportion_on_time_flights.values,
+             title='Proportion of On-Time Flights by Month',
+             labels={'x': 'Month', 'y': 'Proportion of On-Time Flights'},
+             color=proportion_on_time_flights.values,
+             color_continuous_scale='temps_r')
+
+fig.add_annotation(x=best_month, y=proportion_on_time_flights[best_month],
+                   text="Best Month",
+                   showarrow=True,
+                   arrowhead=1)
+
+fig.update_layout(showlegend=False)
+
+fig.show()
+```
+
+_Organized from via color we can see the best months for flying - Dark green meaning better turning yellow, orange, and red as it gets worse._
+
+__Your job is to create a new column that calculates the total number of flights delayed by weather (both severe and mild).__
+
+_A new column was successfully created that calculates flights that are delayed by weather._
+
+```{python}
+
+severe_delays = df['num_of_delays_weather']
+
+mild_delays_aircraft = df['num_of_delays_late_aircraft'] * .3
+
+def calculate_mild_delays(row):
+    if row['month'] in ['April', 'May', 'June', 'July', 'August']:
+        return row['num_of_delays_nas'] * 0.40
+    else:
+        return row['num_of_delays_nas'] * 0.65
+
+df['mild_delays_nas'] = df.apply(calculate_mild_delays, axis=1) 
+
+df['total_weather_delayed_flights'] = severe_delays + mild_delays_aircraft + df['mild_delays_nas']
+
+print(df['total_weather_delayed_flights'].head(5))
+
+```
+
+_Column calculates flights delayed by weather by adding the correct proportions of all columns contributing towards delays by weather._
+
+__Create a barplot showing the proportion of all flights that are delayed by weather at each airport. Discuss what you learn from this graph.__
+
+_I had a very hard time figuring out how to display this correctly. The data formats weird but I cannot seem to figure out why. It took me a while just to get the graph to work. Assuming I somehow did this right it would appear that SFO and ORD had the most weather related delays._
+
+```{python}
+
+df['proportion_delayed_by_weather'] = df['total_weather_delayed_flights'] / df['num_of_flights_total']
+
+# Create the barplot using Plotly Express
+fig = px.bar(df, x='airport_code', y='proportion_delayed_by_weather', 
+             title='Proportion of Flights Delayed by Weather at Each Airport',
+             labels={'proportion_delayed_by_weather': 'Proportion of Flights Delayed by Weather',
+                     'airport_code': 'Airport Code'})
+
+# Show the plot
+fig.show()
+
+```
+
+_Graph should take the grand total of delayed flights and divide this from grand flight total which should then get sorted by airport but I am not sure it is working right or even set up correctly._
+
+```{python}
+
+na_month_count = df['month'].isna().sum()
+
+print("N/A values", na_month_count)
+
+```

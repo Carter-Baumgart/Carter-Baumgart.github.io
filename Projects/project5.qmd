@@ -1,7 +1,7 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Client Report - The war with Star Wars"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Carter Baumgart"
 format:
   html:
     self-contained: true
@@ -25,4 +25,243 @@ execute:
     
 ---
 
-### Paste in a template
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import re 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+```
+
+
+## Elevator pitch
+
+_paste your elevator pitch here_
+_A SHORT (4-5 SENTENCES) PARAGRAPH THAT `DESCRIBES KEY INSIGHTS` TAKEN FROM METRICS IN THE PROJECT RESULTS THINK TOP OR MOST IMPORTANT RESULTS._
+
+```{python}
+url = 'https://raw.githubusercontent.com/fivethirtyeight/data/master/star-wars-survey/StarWars.csv'
+
+df_cols = pd.read_csv(url, encoding = "ISO-8859-1", nrows = 1).melt()
+
+df = pd.read_csv(url, encoding = "ISO-8859-1", skiprows =1, header = None )
+```
+
+```{python}
+df = df.drop(df.columns[0], axis=1)
+```
+
+__Highlight the Questions and Tasks__
+
+## QUESTION|TASK 1
+
+__Shorten the column names and clean them up for easier use with pandas. Provide a table or list that exemplifies how you fixed the names.__
+
+_type your results and analysis here_
+
+```{python}
+
+def clean_column_name(column):
+
+    cleaned_column = column.replace(':', '')
+    cleaned_column = re.sub(r'^.*?(?=[IVXLCDM])', '', cleaned_column)
+    cleaned_column = re.sub(r'\b(?:I{1,3}|IV|V|VI)\b', '', cleaned_column)
+    return cleaned_column.strip()
+
+original_columns = [
+    'Have you seen any of the 6 films in the Star Wars franchise?',
+    'Do you consider yourself to be a fan of the Star Wars film franchise?',
+    'Star Wars: Episode I  The Phantom Menace',
+    'Star Wars: Episode II  Attack of the Clones',
+    'Star Wars: Episode III  Revenge of the Sith',
+    'Star Wars: Episode IV  A New Hope',
+    'Star Wars: Episode V The Empire Strikes Back',
+    'Star Wars: Episode VI Return of the Jedi',
+    'Star Wars: Episode I  The Phantom Menace',
+    'Star Wars: Episode II  Attack of the Clones',
+    'Star Wars: Episode III  Revenge of the Sith',
+    'Star Wars: Episode IV  A New Hope',
+    'Star Wars: Episode V The Empire Strikes Back',
+    'Star Wars: Episode VI Return of the Jedi',
+    'Han Solo',
+    'Luke Skywalker',
+    'Princess Leia Organa',
+    'Anakin Skywalker',
+    'Obi Wan Kenobi',
+    'Emperor Palpatine',
+    'Darth Vader',
+    'Lando Calrissian',
+    'Boba Fett',
+    'C-3P0',
+    'R2 D2',
+    'Jar Jar Binks',
+    'Padme Amidala',
+    'Yoda',
+    'Response',
+    'Response',
+    'Response',
+    'Response',
+    'Response',
+    'Response',
+    'Response',
+    'Response',
+    'Response'
+]
+
+cleaned_columns = [clean_column_name(col) for col in original_columns]
+cleaned_columns = ['Seen a film?', 'Fan of Franchise?', 'The Phantom Menace', 'Attack of the Clones', 'Revenge of the Sith',
+       'A New Hope', 'The Empire Strikes Back', 'Return of the Jedi',
+       'Episode 1 Rank', 'Episode 2 Rank', 'Episode 3 Rank',
+       'Episode 4 Rank', 'Episode 5 Rank', 'Episode 6 Rank',
+       'Han Solo', 'Luke Skywalker', 'Leia Organa', 'Anakin Skywalker',
+       'Obi Wan Kenobi', 'Emperor Palpatine', 'Vader', 'Calrissian',
+       'Boba Fett', 'C-3P0', 'D2', 'Jar Jar Binks', 'Padme Amidala', 'Yoda',
+       'Which character shot first?', 'Response', 'Response', 'Response', 'Gender', 'Age',
+       'Household Income', 'Education', 'Response'] 
+df.columns = cleaned_columns
+
+print(df.columns)
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+## QUESTION|TASK 2
+
+__Clean and format the data so that it can be used in a machine learning model. As you format the data, you should complete each item listed below. In your final report provide example(s) of the reformatted data with a short description of the changes made.__
+
+_type your results and analysis here_
+
+```{python}
+#Filter the dataset to respondents that have seen at least one film.
+df_filtered = df[df['Seen a film?'] == 'Yes']
+#Create a new column that converts the age ranges to a single number. Drop the age range categorical column.
+age_mapping = {'18-29': 1, '30-44': 2, '45-60': 3, '> 60': 4}
+df_filtered['Age'] = df_filtered['Age'].map(age_mapping)
+#Create a new column that converts the education groupings to a single number. Drop the school categorical column
+education_mapping = {
+    'High school degree': 1,
+    'Some college or Associate degree': 2,
+    'Bachelor degree': 3,
+    'Graduate degree': 4
+}
+df_filtered['Education'] = df_filtered['Education'].map(education_mapping)
+#Create a new column that converts the income ranges to a single number. Drop the income range categorical column.
+income_mapping = {
+    '$0 - $24,999': 1,
+    '$25,000 - $49,999': 2,
+    '$50,000 - $99,999': 3,
+    '$100,000 - $149,999': 4,
+    '$150,000+': 5
+}
+df_filtered['Household Income'] = df_filtered['Household Income'].map(income_mapping)
+#Create your target (also known as “y” or “label”) column based on the new income range column.
+df_filtered['Target'] = df_filtered['Household Income']
+#One-hot encode all remaining categorical columns.
+df_encoded = pd.get_dummies(df_filtered, columns=[
+    'Fan of Franchise?', 'The Phantom Menace', 'Attack of the Clones', 'Revenge of the Sith',
+    'A New Hope', 'The Empire Strikes Back', 'Return of the Jedi', 'Han Solo',
+    'Luke Skywalker', 'Leia Organa', 'Anakin Skywalker', 'Obi Wan Kenobi',
+    'Emperor Palpatine', 'Vader', 'Calrissian', 'Boba Fett', 'C-3P0', 'D2',
+    'Jar Jar Binks', 'Padme Amidala', 'Yoda', 'Which character shot first?', 'Gender'
+], drop_first=True)
+
+print(df_encoded.head())
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+## QUESTION|TASK 3
+
+__Validate that the data provided on GitHub lines up with the article by recreating 2 of the visuals from the article.__
+
+_type your results and analysis here_
+
+```{python}
+
+shot_first_counts = df_filtered['Which character shot first?'].value_counts().reset_index()
+shot_first_counts.columns = ['Character', 'Count']
+
+total_responses = shot_first_counts['Count'].sum()
+shot_first_counts['Percentage'] = (shot_first_counts['Count'] / total_responses) * 100
+
+fig = px.bar(shot_first_counts, x='Count', y='Character', 
+             title='Responses for "Which character shot first?"',
+             labels={'Character': 'Character', 'Count': 'Count'})
+
+for i, row in shot_first_counts.iterrows():
+    fig.add_annotation(x=row['Count'], y=row['Character'],
+                       text=f"{row['Percentage']:.2f}%",
+                       showarrow=False,
+                       font=dict(color='black', size=12),
+                       xanchor='left', xshift=10)
+
+fig.show()
+```
+
+_include figures in chunks and discuss your findings in the figure._
+
+```{python}
+
+episode_columns = ['Episode 1 Rank', 'Episode 2 Rank', 'Episode 3 Rank',
+                   'Episode 4 Rank', 'Episode 5 Rank', 'Episode 6 Rank']
+
+#popularity_counts = pd.DataFrame(index=episode_columns)
+#for col in episode_columns:
+#    popularity_counts[col] = (df[col] == 1).sum()
+#      popularity_counts[col] = sum(df[col] == 1)
+
+count_list = []
+for col in episode_columns:
+    count_list.append(sum(df[col] == 1))
+pd.DataFrame(count_list, columns = ['Total'], index=episode_columns)
+
+#popularity_counts['Total'] = popularity_counts.sum(axis=1)
+
+#popularity_counts_sorted = popularity_counts.sort_values(by='Total', ascending=False)
+
+#fig = px.bar(x=popularity_counts_sorted['Total'], y=popularity_counts_sorted.index,
+#             title='Popularity Ranking of Star Wars Episodes',
+#             labels={'x': 'Total Popularity Count', 'y': 'Episode'},
+#             orientation='h')
+
+#fig.show()
+```
+
+```{python}
+popularity_counts
+```
+
+## QUESTION|TASK 4
+
+__Build a machine learning model that predicts whether a person makes more than $50k. Describe your model and report the accuracy.__
+
+_type your results and analysis here_
+
+```{python}
+
+X_encoded = pd.get_dummies(X, columns=['Age'])
+
+X_train_encoded, X_test_encoded, y_train_encoded, y_test_encoded = train_test_split(X_encoded, y, test_size=0.2, random_state=42)
+
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+
+rf_classifier.fit(X_train_encoded, y_train_encoded)
+
+y_pred_encoded = rf_classifier.predict(X_test_encoded)
+
+accuracy_encoded = accuracy_score(y_test_encoded, y_pred_encoded)
+print("Accuracy after encoding categorical variables:", accuracy_encoded)
+
+```
+
+```{python}
+df
+```
+
+
+_include figures in chunks and discuss your findings in the figure._

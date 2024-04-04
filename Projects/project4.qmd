@@ -1,7 +1,7 @@
 ---
-title: "Client Report - [Insert Project Title]"
+title: "Client Report - Can you predict that?"
 subtitle: "Course DS 250"
-author: "[STUDENT NAME]"
+author: "Carter Baumgart"
 format:
   html:
     self-contained: true
@@ -25,4 +25,107 @@ execute:
     
 ---
 
-### Paste in a template
+```{python}
+#| label: libraries
+#| include: false
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+```
+
+
+## Elevator pitch
+
+_To summarize the key findings in the project, there were several charts that provided information helpful to a machine learning algorithm. Additionally, feature importance analysis highlighted that features related to yrbuilt, arcstyle, and stories played the biggest role in predicting. These insights highlight the importance of both performance evaluation and feature analysis in addressing issues and challenges within our provided dataset. Furthermore, the RandomForestClassifier achieved an accuracy score of 1.0, indicating in this case, its ability to perfectly classify instances into their respective classes with the given data._
+
+```{python}
+#| label: project-data
+#| code-summary: Read and format project data
+
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_csv("https://raw.githubusercontent.com/byuidatascience/data4dwellings/master/data-raw/dwellings_ml/dwellings_ml.csv")
+```
+
+__Create 2-3 charts that evaluate potential relationships between the home variables and before1980.__
+
+_I chose to use a boxplot and histogram since these charts can aid in helping us to visualize variable distribution relating to before1980. Key findings include identification of any significant differences in the distributions of variables between the two groups as well as helping us understand the distribution of the target variable across different years._
+
+```{python}
+
+fig1 = px.box(df, x="before1980", y="yrbuilt", title="Distribution of Builds based on 'before1980'")
+fig1.update_xaxes(title="Before 1980")
+fig1.update_yaxes(title="Year Built")
+fig1.show()
+
+```
+
+```{python}
+
+fig2 = px.histogram(df, x="yrbuilt", color="before1980", nbins=30, title="Distribution of Builds over the Years")
+fig2.update_xaxes(title="Year Built")
+fig2.update_yaxes(title="Count Built")
+fig2.show()
+
+```
+
+_Here we will find our median year built for houses categorized as 'before1980' and 'during/after 1980' which provides insight into the central tendency of the distribution for each category as well as outliers. We also see comparison by category (via color) as well as build trends over the years._
+
+__Build a classification model labeling houses as being built “before 1980” or “during or after 1980”. Your goal is to reach or exceed 90% accuracy.__
+
+_Here we used the Random Forest classifier to predict whether a house was built before 1980 or during/after 1980, achieving an accuracy of 1.0 on the test set. I believe this to be due to the dataset being highly separable based on the provided features in the dataframe._
+
+```{python}
+
+x = df.drop(columns=['parcel', 'before1980','yrbuilt'])
+y = df['before1980']
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
+clf = RandomForestClassifier(random_state=42)
+clf.fit(x_train, y_train)
+
+y_pred = clf.predict(x_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+```
+
+_As stated above, the model's perfect accuracy suggests that it may have identified clear patterns or relationships between the features and the target variable, allowing for perfect accuracy._
+
+__Justify your classification model by discussing the most important features selected by your model. This discussion should include a chart and a description of the features.__
+
+_analysis suggests that that the most important features include yrbuilt, arcstyle, stories, livearea, and numbaths and that these features play a large part in determining classification outcome._
+
+```{python}
+
+X = df.drop(columns=['parcel', 'before1980'])
+y = df['before1980']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+clf = RandomForestClassifier(random_state=42)
+clf.fit(X_train, y_train)
+
+importances = clf.feature_importances_
+feature_names = X.columns
+
+feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+top_5_features = feature_importance_df.head(5)
+
+fig = px.bar(top_5_features, x='Feature', y='Importance', title='Top 5 Feature Importances')
+fig.show()
+```
+
+_These top 5 features all had the highest importance when compared to other features but yrbuilt played a largest part _
+
+__Describe the quality of your classification model using 2-3 different evaluation metrics. You also need to explain how to interpret each of the evaluation metrics you use.__
+
+_The quality of my classification/feature model was determined by accuracy, precision and recall, and lastly F1 score. Accuracy must be computed via a model which utilizes True positive, True Negative, False Positive and False Negative. Using these we are able to provide an overall measure of how the model works. This however can be thrown off by features which are much more frequent than other ones (yrbuilt). Precision/Recall are great for this dataset because they are good for unbalanced datasets. Precision measures the proportion of true positive predictions among all true and false positive predictions. Recall is similar but instead measures the proportion of true and false negatives among the total of positive instances. lastly, F1 Score is the mean of precision and recall which balances them which is again helpful with uneven feature distributions. _
