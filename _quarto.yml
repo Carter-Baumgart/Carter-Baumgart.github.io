@@ -5,7 +5,7 @@ website:
   title: "Carter_Baumgart Data Science Portfolio"
   favicon: Images/favicon.png
   back-to-top-navigation: true
-  repo-url: https://github.com/my_projects
+  repo-url: https://github.com/Carter-Baumgart/Carter-Baumgart.github.io
   #repo-actions: [issue] #if you want to allow others to report issues on your site uncomment this line
 
   page-footer: 

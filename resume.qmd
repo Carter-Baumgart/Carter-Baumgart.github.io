@@ -1,42 +1,86 @@
 ---
 layout: cv
-title: Carter Baumgart's Resume
+title: Isaac Newtons's CV
 ---
-# Carter Baumgart
-Bachelor's Degree in Business Analytics
+# Isaac Newton
+Physicist, Mathematician, Cambridge professor.
 
 <div id="webaddress">
-<a href="datascience@byui.edu">bau17006@byui.edu</a>
-| <a href="https://byuidatascience.github.io/development.html">Business Analytics Program</a>
-| <a href="https://www.linkedin.com/groups/13537407/">LinkedIn</a>
-| <a href="https://github.com/byuids-resumes">GitHub</a>
+<a href="isaac@applesdofall.org">isaac@applesdofall.org</a>
+| <a href="http://en.wikipedia.org/wiki/Isaac_Newton">My wikipedia page</a>
 </div>
 
-<!-- https://www.monique.tech/the-art-of-markdown -->
+
+## Currently
+
+Standing on the shoulders of giants
+
+### Specialized in
+
+Laws of motion, gravitation, minting coins, disliking [Robert Hooke](http://en.wikipedia.org/wiki/Robert_Hooke)
+
+
+### Research interests
+
+Cooling, power series, optics, alchemy, planetary motions, apples.
+
 
 ## Education
 
-`2020-2024`
-__Brigham Young University - Idaho__, Rexburg, ID
+`1654-1660`
+__The King's School, Grantham.__
 
-- 3.7 Major GPA
+`June 1661 - now`
+__Trinity College, Cambridge__
 
-### Internships
+- Sizar
 
-`July 2024 - December 2024`
-__TBD__
+`1667 - death`
+__Trinity College, Cambridge__
 
-## Service and Work History
-
-`2023-2023`
-__Teacher's Assistant - Business Analytics__, BYUI
+- Fellow
 
 
-`2018-2020`
-__Service Missionary__, Arcadia, California
+
+## Awards
+
+`2012`
+President, *Royal Society*, London, UK
+
+Associate, *French Academy of Science*, Paris, France
 
 
-__Language_Training__, Spanish
+
+## Publications
+
+<!-- A list is also available [online](http://scholar.google.co.uk/citations?user=LTOTl0YAAAAJ) -->
+
+### Journals
+
+`1669`
+Newton Sir I, De analysi per æquationes numero terminorum infinitas. 
+
+`1669`
+Lectiones opticæ.
+
+etc. etc. etc.
+
+### Patents
+
+`2012`
+Infinitesimal calculus for solutions to physics problems, [SMBC](http://www.techdirt.com/articles/20121011/09312820678/if-patents-had-been-around-time-newton.shtml) patent 001
+
+
+## Occupation
+
+`1600`
+__Royal Mint__, London
+
+- Warden
+- Minted coins
+
+`1600`
+__Lucasian professor of Mathematics__, Cambridge University
 
 
 
